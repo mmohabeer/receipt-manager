@@ -1,0 +1,755 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#2563eb">
+    <meta name="mobile-web-app-capable" content="yes">
+    <title>Receipt Manager</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            padding-bottom: 80px;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+
+        .header h1 {
+            color: #2563eb;
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+
+        .dashboard {
+            background: rgba(255,255,255,0.95);
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        .dashboard h2 {
+            font-size: 16px;
+            color: #4b5563;
+            margin-bottom: 10px;
+        }
+
+        .total-amount {
+            font-size: 32px;
+            color: #10b981;
+            font-weight: bold;
+        }
+
+        .btn {
+            background: #2563eb;
+            color: white;
+            border: none;
+            padding: 15px 25px;
+            border-radius: 10px;
+            font-size: 16px;
+            cursor: pointer;
+            width: 100%;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            transition: background 0.3s;
+            touch-action: manipulation;
+        }
+
+        .btn:active {
+            background: #1d4ed8;
+            transform: scale(0.98);
+        }
+
+        .btn-secondary {
+            background: #10b981;
+        }
+
+        .btn-secondary:active {
+            background: #059669;
+        }
+
+        .btn-danger {
+            background: #ef4444;
+        }
+
+        .btn-danger:active {
+            background: #dc2626;
+        }
+
+        .folders-list {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .folder-item {
+            background: #f3f4f6;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            transition: background 0.3s;
+            touch-action: manipulation;
+        }
+
+        .folder-item:active {
+            background: #e5e7eb;
+        }
+
+        .folder-info {
+            flex: 1;
+        }
+
+        .folder-name {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 5px;
+        }
+
+        .folder-meta {
+            font-size: 14px;
+            color: #6b7280;
+        }
+
+        .folder-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .icon-btn {
+            background: none;
+            border: none;
+            font-size: 20px;
+            cursor: pointer;
+            padding: 5px;
+            touch-action: manipulation;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            max-width: 90%;
+            width: 400px;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-content h2 {
+            margin-bottom: 20px;
+            color: #1f2937;
+        }
+
+        .input-group {
+            margin-bottom: 15px;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #4b5563;
+            font-weight: 500;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 16px;
+        }
+
+        .input-group input:focus {
+            outline: none;
+            border-color: #2563eb;
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .receipts-view {
+            display: none;
+        }
+
+        .receipts-view.active {
+            display: block;
+        }
+
+        .back-btn {
+            background: #6b7280;
+            margin-bottom: 20px;
+        }
+
+        .back-btn:active {
+            background: #4b5563;
+        }
+
+        .receipt-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .receipt-card {
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            position: relative;
+        }
+
+        .receipt-card img {
+            width: 100%;
+            height: 150px;
+            object-fit: cover;
+            cursor: pointer;
+        }
+
+        .receipt-info {
+            padding: 10px;
+        }
+
+        .receipt-amount {
+            font-size: 16px;
+            font-weight: 600;
+            color: #10b981;
+        }
+
+        .receipt-date {
+            font-size: 12px;
+            color: #6b7280;
+        }
+
+        .delete-receipt {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background: #ef4444;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            cursor: pointer;
+            font-size: 18px;
+            touch-action: manipulation;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #6b7280;
+        }
+
+        .empty-state-icon {
+            font-size: 48px;
+            margin-bottom: 10px;
+        }
+
+        .capture-btn {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: #2563eb;
+            color: white;
+            border: none;
+            font-size: 24px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+            cursor: pointer;
+            z-index: 100;
+            touch-action: manipulation;
+        }
+
+        .capture-btn:active {
+            background: #1d4ed8;
+            transform: scale(0.95);
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+            color: #2563eb;
+        }
+
+        .loading.active {
+            display: block;
+        }
+
+        .image-preview-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.9);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .image-preview-modal.active {
+            display: flex;
+        }
+
+        .image-preview-modal img {
+            max-width: 90%;
+            max-height: 90%;
+            object-fit: contain;
+        }
+
+        .close-preview {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: white;
+            color: black;
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            font-size: 24px;
+            cursor: pointer;
+            touch-action: manipulation;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Main View -->
+        <div id="main-view">
+            <div class="header">
+                <h1>📁 Receipt Manager</h1>
+            </div>
+
+            <div class="dashboard">
+                <h2>Total Tracked</h2>
+                <div class="total-amount" id="total-amount">$0.00</div>
+            </div>
+
+            <button class="btn" onclick="openNewFolderModal()">
+                ➕ Create New Folder
+            </button>
+
+            <div class="folders-list" id="folders-list">
+                <div class="empty-state">
+                    <div class="empty-state-icon">📂</div>
+                    <p>No folders yet. Create one to get started!</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Receipts View -->
+        <div id="receipts-view" class="receipts-view">
+            <button class="btn back-btn" onclick="backToMain()">
+                ← Back to Folders
+            </button>
+
+            <div class="header">
+                <h1 id="current-folder-name">Folder Name</h1>
+                <p style="color: #6b7280; margin-top: 5px;">
+                    <span id="folder-receipt-count">0</span> receipts • 
+                    <span id="folder-total">$0.00</span>
+                </p>
+            </div>
+
+            <button class="btn btn-secondary" onclick="exportFolder()">
+                📦 Export as ZIP
+            </button>
+
+            <input type="file" id="file-input" accept="image/*" capture="environment" style="display: none;" onchange="handleFileSelect(event)">
+            
+            <div class="receipt-grid" id="receipt-grid">
+                <div class="empty-state">
+                    <div class="empty-state-icon">📸</div>
+                    <p>No receipts yet. Tap the camera button to add one!</p>
+                </div>
+            </div>
+
+            <button class="capture-btn" onclick="captureReceipt()">
+                📷
+            </button>
+        </div>
+    </div>
+
+    <!-- New Folder Modal -->
+    <div id="new-folder-modal" class="modal">
+        <div class="modal-content">
+            <h2>Create New Folder</h2>
+            <div class="input-group">
+                <label>Folder Name</label>
+                <input type="text" id="folder-name-input" placeholder="e.g., Q1 2025">
+            </div>
+            <div class="modal-buttons">
+                <button class="btn" onclick="createFolder()" style="flex: 1;">Create</button>
+                <button class="btn btn-danger" onclick="closeModal('new-folder-modal')" style="flex: 1;">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Receipt Amount Modal -->
+    <div id="receipt-amount-modal" class="modal">
+        <div class="modal-content">
+            <h2>Receipt Details</h2>
+            <img id="receipt-preview" style="width: 100%; border-radius: 10px; margin-bottom: 15px;">
+            <div class="input-group">
+                <label>Amount (Optional)</label>
+                <input type="number" step="0.01" id="receipt-amount-input" placeholder="0.00">
+            </div>
+            <div class="modal-buttons">
+                <button class="btn" onclick="saveReceipt()" style="flex: 1;">Save</button>
+                <button class="btn btn-danger" onclick="closeModal('receipt-amount-modal')" style="flex: 1;">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Image Preview Modal -->
+    <div id="image-preview-modal" class="image-preview-modal">
+        <button class="close-preview" onclick="closeImagePreview()">×</button>
+        <img id="preview-image" src="" alt="Receipt Preview">
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script>
+        // Data structure
+        let data = {
+            folders: []
+        };
+
+        let currentFolder = null;
+        let currentReceiptImage = null;
+
+        // Load data from localStorage
+        function loadData() {
+            const saved = localStorage.getItem('receiptManagerData');
+            if (saved) {
+                data = JSON.parse(saved);
+            }
+            renderFolders();
+            updateTotalAmount();
+        }
+
+        // Save data to localStorage
+        function saveData() {
+            localStorage.setItem('receiptManagerData', JSON.stringify(data));
+            updateTotalAmount();
+        }
+
+        // Update total amount
+        function updateTotalAmount() {
+            let total = 0;
+            data.folders.forEach(folder => {
+                folder.receipts.forEach(receipt => {
+                    if (receipt.amount) {
+                        total += parseFloat(receipt.amount);
+                    }
+                });
+            });
+            document.getElementById('total-amount').textContent = `$${total.toFixed(2)}`;
+        }
+
+        // Open new folder modal
+        function openNewFolderModal() {
+            document.getElementById('new-folder-modal').classList.add('active');
+            document.getElementById('folder-name-input').value = '';
+            document.getElementById('folder-name-input').focus();
+        }
+
+        // Close modal
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove('active');
+        }
+
+        // Create folder
+        function createFolder() {
+            const name = document.getElementById('folder-name-input').value.trim();
+            if (!name) {
+                alert('Please enter a folder name');
+                return;
+            }
+
+            const folder = {
+                id: Date.now(),
+                name: name,
+                created: new Date().toISOString(),
+                receipts: []
+            };
+
+            data.folders.push(folder);
+            saveData();
+            renderFolders();
+            closeModal('new-folder-modal');
+        }
+
+        // Render folders
+        function renderFolders() {
+            const container = document.getElementById('folders-list');
+            
+            if (data.folders.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">📂</div>
+                        <p>No folders yet. Create one to get started!</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = data.folders.map(folder => {
+                const total = folder.receipts.reduce((sum, r) => sum + (parseFloat(r.amount) || 0), 0);
+                return `
+                    <div class="folder-item" onclick="openFolder(${folder.id})">
+                        <div class="folder-info">
+                            <div class="folder-name">📁 ${folder.name}</div>
+                            <div class="folder-meta">
+                                ${folder.receipts.length} receipts • $${total.toFixed(2)}
+                            </div>
+                        </div>
+                        <div class="folder-actions">
+                            <button class="icon-btn" onclick="event.stopPropagation(); deleteFolder(${folder.id})" title="Delete">
+                                🗑️
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Delete folder
+        function deleteFolder(folderId) {
+            if (confirm('Are you sure you want to delete this folder and all its receipts?')) {
+                data.folders = data.folders.filter(f => f.id !== folderId);
+                saveData();
+                renderFolders();
+            }
+        }
+
+        // Open folder
+        function openFolder(folderId) {
+            currentFolder = data.folders.find(f => f.id === folderId);
+            if (!currentFolder) return;
+
+            document.getElementById('main-view').style.display = 'none';
+            document.getElementById('receipts-view').classList.add('active');
+            
+            document.getElementById('current-folder-name').textContent = currentFolder.name;
+            renderReceipts();
+        }
+
+        // Back to main
+        function backToMain() {
+            document.getElementById('main-view').style.display = 'block';
+            document.getElementById('receipts-view').classList.remove('active');
+            currentFolder = null;
+            renderFolders();
+        }
+
+        // Capture receipt
+        function captureReceipt() {
+            document.getElementById('file-input').click();
+        }
+
+        // Handle file select
+        function handleFileSelect(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                currentReceiptImage = e.target.result;
+                document.getElementById('receipt-preview').src = currentReceiptImage;
+                document.getElementById('receipt-amount-input').value = '';
+                document.getElementById('receipt-amount-modal').classList.add('active');
+            };
+            reader.readAsDataURL(file);
+        }
+
+        // Save receipt
+        function saveReceipt() {
+            const amount = document.getElementById('receipt-amount-input').value;
+            
+            const receipt = {
+                id: Date.now(),
+                image: currentReceiptImage,
+                amount: amount || null,
+                date: new Date().toISOString()
+            };
+
+            currentFolder.receipts.push(receipt);
+            saveData();
+            renderReceipts();
+            closeModal('receipt-amount-modal');
+            currentReceiptImage = null;
+            
+            // Reset file input
+            document.getElementById('file-input').value = '';
+        }
+
+        // Render receipts
+        function renderReceipts() {
+            const container = document.getElementById('receipt-grid');
+            const folder = currentFolder;
+
+            document.getElementById('folder-receipt-count').textContent = folder.receipts.length;
+            const total = folder.receipts.reduce((sum, r) => sum + (parseFloat(r.amount) || 0), 0);
+            document.getElementById('folder-total').textContent = `$${total.toFixed(2)}`;
+
+            if (folder.receipts.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">📸</div>
+                        <p>No receipts yet. Tap the camera button to add one!</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = folder.receipts.map(receipt => `
+                <div class="receipt-card">
+                    <button class="delete-receipt" onclick="deleteReceipt(${receipt.id})">×</button>
+                    <img src="${receipt.image}" alt="Receipt" onclick="showImagePreview('${receipt.image}')">
+                    <div class="receipt-info">
+                        ${receipt.amount ? `<div class="receipt-amount">$${parseFloat(receipt.amount).toFixed(2)}</div>` : ''}
+                        <div class="receipt-date">${new Date(receipt.date).toLocaleDateString()}</div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Show image preview
+        function showImagePreview(imageSrc) {
+            document.getElementById('preview-image').src = imageSrc;
+            document.getElementById('image-preview-modal').classList.add('active');
+        }
+
+        // Close image preview
+        function closeImagePreview() {
+            document.getElementById('image-preview-modal').classList.remove('active');
+        }
+
+        // Delete receipt
+        function deleteReceipt(receiptId) {
+            if (confirm('Delete this receipt?')) {
+                currentFolder.receipts = currentFolder.receipts.filter(r => r.id !== receiptId);
+                saveData();
+                renderReceipts();
+                renderFolders();
+            }
+        }
+
+        // Export folder as ZIP
+        async function exportFolder() {
+            if (!currentFolder || currentFolder.receipts.length === 0) {
+                alert('No receipts to export');
+                return;
+            }
+
+            try {
+                const zip = new JSZip();
+                const folder = zip.folder(currentFolder.name);
+
+                // Add receipts
+                currentFolder.receipts.forEach((receipt, index) => {
+                    const base64Data = receipt.image.split(',')[1];
+                    const fileName = `receipt_${index + 1}_${receipt.amount ? '$' + receipt.amount : 'no-amount'}.jpg`;
+                    folder.file(fileName, base64Data, { base64: true });
+                });
+
+                // Add summary file
+                const summary = currentFolder.receipts.map((r, i) => 
+                    `Receipt ${i + 1}: ${r.amount ? '$' + r.amount : 'No amount'} - ${new Date(r.date).toLocaleString()}`
+                ).join('\n');
+                
+                const total = currentFolder.receipts.reduce((sum, r) => sum + (parseFloat(r.amount) || 0), 0);
+                const summaryText = `${currentFolder.name}\n${'='.repeat(50)}\n\n${summary}\n\n${'='.repeat(50)}\nTotal: $${total.toFixed(2)}`;
+                
+                folder.file('summary.txt', summaryText);
+
+                // Generate ZIP
+                const content = await zip.generateAsync({ type: 'blob' });
+                
+                // Download
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(content);
+                link.download = `${currentFolder.name.replace(/[^a-z0-9]/gi, '_')}.zip`;
+                link.click();
+                
+                alert('Export successful! Check your Downloads folder.');
+            } catch (error) {
+                alert('Export failed. Please try again.');
+                console.error(error);
+            }
+        }
+
+        // Initialize
+        loadData();
+
+        // Handle back button
+        document.addEventListener('DOMContentLoaded', function() {
+            if (window.history && window.history.pushState) {
+                window.history.pushState('forward', null, '');
+                window.onpopstate = function() {
+                    if (document.getElementById('receipts-view').classList.contains('active')) {
+                        backToMain();
+                        window.history.pushState('forward', null, '');
+                    }
+                };
+            }
+        });
+    </script>
+</body>
+</html>
